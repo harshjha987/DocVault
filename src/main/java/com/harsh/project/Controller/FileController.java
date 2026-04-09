@@ -9,6 +9,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
+import java.util.List;
 
 @RestController
 @RequestMapping("/api/v1")
@@ -35,4 +36,16 @@ public class FileController {
 
         return fileService.downloadFile(id);
     }
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<String> deleteFile(@PathVariable String id) throws IOException {
+        return fileService.deleteFile(id);
+    }
+
+    @GetMapping("/files")
+    public List<FileUploadResponse> getAllFiles(){
+        return fileService.getAllFiles();
+    }
+
+
 }

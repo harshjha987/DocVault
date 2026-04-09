@@ -19,7 +19,10 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.time.Instant;
+import java.util.List;
+import java.util.stream.Stream;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 @Service
 public class FileService {
@@ -78,4 +81,26 @@ public class FileService {
                 .body(resource);
     }
 
+    public ResponseEntity<String> deleteFile(String id) throws IOException {
+        File file = fileRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("File not found with id: " + id));
+
+        // Delete from disk
+        Path filePath = Path.of("uploads/" + file.getFileName());
+        Files.deleteIfExists(filePath);
+
+        // Delete from DB
+        fileRepository.delete(file);
+
+        return new ResponseEntity<>("File deleted", HttpStatus.OK);
+    }
+
+
+    public List<FileUploadResponse> getAllFiles() {
+
+        List<File> files = fileRepository.findAll();
+        return files.stream()
+                .map(fileMapper::toEntity)
+                .collect(Collectors.toList());
+    }
 }
