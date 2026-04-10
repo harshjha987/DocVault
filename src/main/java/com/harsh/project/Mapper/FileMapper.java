@@ -7,7 +7,7 @@ import org.springframework.stereotype.Component;
 @Component
 public class FileMapper {
 
-    public FileUploadResponse toEntity(File file){
+    public FileUploadResponse toResponse(File file){
         FileUploadResponse response = new FileUploadResponse();
         response.setId(file.getId());
         response.setOriginalName(file.getOriginalName());

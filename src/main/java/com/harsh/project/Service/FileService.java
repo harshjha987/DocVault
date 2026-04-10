@@ -2,16 +2,22 @@ package com.harsh.project.Service;
 
 import com.harsh.project.Dto.FileUploadResponse;
 import com.harsh.project.Entity.File;
+import com.harsh.project.Entity.User;
+import com.harsh.project.Exception.FileStorageException;
+import com.harsh.project.Exception.ResourceNotFoundException;
+import com.harsh.project.Exception.UnauthorizedAccessException;
 import com.harsh.project.Mapper.FileMapper;
 import com.harsh.project.Repository.FileRepository;
 
 
+import com.harsh.project.Repository.UserRepository;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.UrlResource;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -31,9 +37,12 @@ public class FileService {
 
     private final FileMapper fileMapper;
 
-    public FileService(FileRepository fileRepository, FileMapper fileMapper){
+    private final UserRepository userRepository;
+
+    public FileService(FileRepository fileRepository, FileMapper fileMapper, UserRepository userRepository){
         this.fileRepository = fileRepository;
         this.fileMapper = fileMapper;
+        this.userRepository = userRepository;
     }
 
 
@@ -46,7 +55,13 @@ public class FileService {
         String fileName = UUID.randomUUID() + "_" + originalName;
         Path destination = Path.of("uploads/" + fileName);
         Files.createDirectories(destination.getParent());
-        multipartFile.transferTo(destination);
+        try {
+            multipartFile.transferTo(destination);
+        } catch (IOException e) {
+            throw new FileStorageException("Could not save file: " + originalName);
+        }
+
+        User currentUser = getCurrentUser();
 
         // Save metadata to DB
         File file = new File();
@@ -55,35 +70,41 @@ public class FileService {
         file.setFileType(multipartFile.getContentType());
         file.setSize(multipartFile.getSize());
         file.setUploadedAt(Instant.now());
+        file.setUser(currentUser);
         fileRepository.save(file);
 
-        FileUploadResponse res = fileMapper.toEntity(file);
+        FileUploadResponse res = fileMapper.toResponse(file);
         return new ResponseEntity<>(res, HttpStatus.CREATED);
     }
 
     public ResponseEntity<FileUploadResponse>getFileById(String id){
         File file = fileRepository.findById(id)
-                .orElseThrow(()->
-            new RuntimeException("File not found with id"+ id)
-        );
-        return new ResponseEntity<>(fileMapper.toEntity(file),HttpStatus.OK);
+                .orElseThrow(() -> new ResourceNotFoundException(
+                        "File not found with id: " + id));
+
+        checkOwnership(file, getCurrentUser());
+        return new ResponseEntity<>(fileMapper.toResponse(file),HttpStatus.OK);
     }
 
     public ResponseEntity<Resource>downloadFile(String id) throws IOException{
         File file = fileRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("File not found with this id "+ id));
+
+        checkOwnership(file, getCurrentUser());
         Path filePath = Path.of("uploads/"+ file.getFileName());
         Resource resource = new UrlResource(filePath.toUri());
         return ResponseEntity.ok()
                 .contentType(MediaType.parseMediaType(file.getFileType()))
                 .header(HttpHeaders.CONTENT_DISPOSITION,
-                        "attachment; filename =\""+ file.getOriginalName())
+                        "attachment; filename=\""+ file.getOriginalName())
                 .body(resource);
     }
 
     public ResponseEntity<String> deleteFile(String id) throws IOException {
         File file = fileRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("File not found with id: " + id));
+
+        checkOwnership(file, getCurrentUser());
 
         // Delete from disk
         Path filePath = Path.of("uploads/" + file.getFileName());
@@ -98,9 +119,23 @@ public class FileService {
 
     public List<FileUploadResponse> getAllFiles() {
 
-        List<File> files = fileRepository.findAll();
-        return files.stream()
-                .map(fileMapper::toEntity)
+        User currentUser = getCurrentUser();
+        return fileRepository.findByUser(currentUser)
+                .stream()
+                .map(fileMapper::toResponse)
                 .collect(Collectors.toList());
+    }
+
+    private User getCurrentUser() {
+        return (User) SecurityContextHolder.getContext()
+                .getAuthentication()
+                .getPrincipal();  // returns the User object we stored in JwtFilter
+    }
+
+    private void checkOwnership(File file, User currentUser) {
+        if (!file.getUser().getId().equals(currentUser.getId())) {
+            throw new UnauthorizedAccessException(
+                    "You do not have permission to access this file");
+        }
     }
 }

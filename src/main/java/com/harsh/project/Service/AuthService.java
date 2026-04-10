@@ -5,6 +5,7 @@ import com.harsh.project.Dto.LoginResponse;
 import com.harsh.project.Dto.RegisterRequest;
 import com.harsh.project.Dto.RegisterResponse;
 import com.harsh.project.Entity.User;
+import com.harsh.project.Exception.DuplicateResourceException;
 import com.harsh.project.Repository.UserRepository;
 import com.harsh.project.Security.JwtUtil;
 import org.springframework.http.HttpStatus;
@@ -35,8 +36,10 @@ public class AuthService {
 
     //REGISTER User
     public ResponseEntity<RegisterResponse> register(RegisterRequest request){
-        if(userRepository.findByEmail(request.getEmail()).isPresent()){
-            return new ResponseEntity<>(HttpStatus.CONFLICT);
+        // register
+        if (userRepository.findByEmail(request.getEmail()).isPresent()) {
+            throw new DuplicateResourceException(
+                    "Email already exists: " + request.getEmail());
         }
         User user = new User();
         user.setEmail(request.getEmail());

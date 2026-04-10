@@ -12,7 +12,7 @@ import java.io.IOException;
 import java.util.List;
 
 @RestController
-@RequestMapping("/api/v1")
+@RequestMapping("/api/v1/files")
 public class FileController {
 
     private FileService fileService;
@@ -42,7 +42,7 @@ public class FileController {
         return fileService.deleteFile(id);
     }
 
-    @GetMapping("/files")
+    @GetMapping("/allFiles")
     public List<FileUploadResponse> getAllFiles(){
         return fileService.getAllFiles();
     }
