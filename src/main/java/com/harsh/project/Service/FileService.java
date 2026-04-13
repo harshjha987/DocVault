@@ -2,6 +2,7 @@ package com.harsh.project.Service;
 
 import com.harsh.project.Dto.FileUploadResponse;
 import com.harsh.project.Entity.File;
+import com.harsh.project.Entity.Folder;
 import com.harsh.project.Entity.User;
 import com.harsh.project.Exception.FileStorageException;
 import com.harsh.project.Exception.ResourceNotFoundException;
@@ -10,6 +11,7 @@ import com.harsh.project.Mapper.FileMapper;
 import com.harsh.project.Repository.FileRepository;
 
 
+import com.harsh.project.Repository.FolderRepository;
 import com.harsh.project.Repository.UserRepository;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.UrlResource;
@@ -34,20 +36,22 @@ import java.util.stream.Collectors;
 public class FileService {
 
     private final FileRepository fileRepository;
+    private final FolderRepository folderRepository;
 
     private final FileMapper fileMapper;
 
     private final UserRepository userRepository;
 
-    public FileService(FileRepository fileRepository, FileMapper fileMapper, UserRepository userRepository){
+    public FileService(FileRepository fileRepository, FolderRepository folderRepository, FileMapper fileMapper, UserRepository userRepository){
         this.fileRepository = fileRepository;
+        this.folderRepository = folderRepository;
         this.fileMapper = fileMapper;
         this.userRepository = userRepository;
     }
 
 
 
-    public ResponseEntity<FileUploadResponse> uploadFile(MultipartFile multipartFile) throws IOException {
+    public ResponseEntity<FileUploadResponse> uploadFile(MultipartFile multipartFile , String folderId) throws IOException {
 
         // Save actual file to disk
         String originalName = multipartFile.getOriginalFilename();
@@ -71,6 +75,11 @@ public class FileService {
         file.setSize(multipartFile.getSize());
         file.setUploadedAt(Instant.now());
         file.setUser(currentUser);
+        if(folderId != null){
+            Folder folder = folderRepository.findById(folderId)
+                    .orElseThrow(()->new ResourceNotFoundException("folder not found with this id" + folderId));
+            file.setFolder(folder);
+        }
         fileRepository.save(file);
 
         FileUploadResponse res = fileMapper.toResponse(file);

@@ -22,8 +22,9 @@ public class FileController {
     }
 
     @PostMapping("/upload")
-    public ResponseEntity<FileUploadResponse> uploadFile(@RequestParam("file") MultipartFile file) throws IOException {
-            return fileService.uploadFile(file);
+    public ResponseEntity<FileUploadResponse> uploadFile(@RequestParam("file") MultipartFile file
+    ,@RequestParam(value = "folderId", required = false) String folderId) throws IOException {
+            return fileService.uploadFile(file,folderId);
     }
 
     @GetMapping("/{id}")
