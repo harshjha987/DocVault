@@ -49,4 +49,10 @@ public class FileController {
     }
 
 
+    @GetMapping("/search")
+    public List<FileUploadResponse>searchFiles(@RequestParam("name")String name){
+        return fileService.searchFiles(name);
+    }
+
+
 }

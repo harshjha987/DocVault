@@ -11,4 +11,6 @@ public interface FileRepository extends JpaRepository<File, String> {
 
     List<File> findByUser(User user);
 
+    List<File>searchByUserAndOriginalNameContainingIgnoreCase(User user,String name);
+
 }

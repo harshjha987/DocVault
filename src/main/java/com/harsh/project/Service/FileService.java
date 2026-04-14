@@ -141,6 +141,14 @@ public class FileService {
                 .getPrincipal();  // returns the User object we stored in JwtFilter
     }
 
+    public List<FileUploadResponse>searchFiles(String name){
+        User user = getCurrentUser();
+        return fileRepository.searchByUserAndOriginalNameContainingIgnoreCase(user,name)
+                .stream()
+                .map(fileMapper::toResponse)
+                .collect(Collectors.toList());
+    }
+
     private void checkOwnership(File file, User currentUser) {
         if (!file.getUser().getId().equals(currentUser.getId())) {
             throw new UnauthorizedAccessException(
