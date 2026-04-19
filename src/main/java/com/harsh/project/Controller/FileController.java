@@ -33,7 +33,7 @@ public class FileController {
     }
 
     @GetMapping("/{id}/download")
-    public ResponseEntity<Resource>downloadFile(@PathVariable String id) throws IOException{
+    public ResponseEntity<byte[]>downloadFile(@PathVariable String id) throws IOException{
 
         return fileService.downloadFile(id);
     }

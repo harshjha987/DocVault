@@ -24,6 +24,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.time.Instant;
@@ -42,11 +43,14 @@ public class FileService {
 
     private final UserRepository userRepository;
 
-    public FileService(FileRepository fileRepository, FolderRepository folderRepository, FileMapper fileMapper, UserRepository userRepository){
+    private final S3Service s3Service;
+
+    public FileService(FileRepository fileRepository, FolderRepository folderRepository, FileMapper fileMapper, UserRepository userRepository, S3Service s3Service){
         this.fileRepository = fileRepository;
         this.folderRepository = folderRepository;
         this.fileMapper = fileMapper;
         this.userRepository = userRepository;
+        this.s3Service = s3Service;
     }
 
 
@@ -57,13 +61,12 @@ public class FileService {
         String originalName = multipartFile.getOriginalFilename();
 
         String fileName = UUID.randomUUID() + "_" + originalName;
-        Path destination = Path.of("uploads/" + fileName);
-        Files.createDirectories(destination.getParent());
-        try {
-            multipartFile.transferTo(destination);
-        } catch (IOException e) {
-            throw new FileStorageException("Could not save file: " + originalName);
-        }
+        s3Service.uploadFile(fileName, multipartFile);
+//        try {
+//            multipartFile.transferTo(destination);
+//        } catch (IOException e) {
+//            throw new FileStorageException("Could not save file: " + originalName);
+//        }
 
         User currentUser = getCurrentUser();
 
@@ -95,18 +98,21 @@ public class FileService {
         return new ResponseEntity<>(fileMapper.toResponse(file),HttpStatus.OK);
     }
 
-    public ResponseEntity<Resource>downloadFile(String id) throws IOException{
+    public ResponseEntity<byte[]>downloadFile(String id) throws IOException{
         File file = fileRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("File not found with this id "+ id));
 
         checkOwnership(file, getCurrentUser());
-        Path filePath = Path.of("uploads/"+ file.getFileName());
-        Resource resource = new UrlResource(filePath.toUri());
-        return ResponseEntity.ok()
-                .contentType(MediaType.parseMediaType(file.getFileType()))
-                .header(HttpHeaders.CONTENT_DISPOSITION,
-                        "attachment; filename=\""+ file.getOriginalName())
-                .body(resource);
+        try (InputStream inputStream = s3Service.downloadFile(file.getFileName())) {
+            byte[] content = inputStream.readAllBytes();
+            return ResponseEntity.ok()
+                    .contentType(MediaType.parseMediaType(file.getFileType()))
+                    .header(HttpHeaders.CONTENT_DISPOSITION,
+                            "attachment; filename=\"" + file.getOriginalName() + "\"")
+                    .body(content);
+        } catch (IOException e) {
+            throw new FileStorageException("Could not download file: " + id);
+        }
     }
 
     public ResponseEntity<String> deleteFile(String id) throws IOException {
@@ -115,11 +121,13 @@ public class FileService {
 
         checkOwnership(file, getCurrentUser());
 
-        // Delete from disk
-        Path filePath = Path.of("uploads/" + file.getFileName());
-        Files.deleteIfExists(filePath);
+//        // Delete from disk
+//        Path filePath = Path.of("uploads/" + file.getFileName());
+//        Files.deleteIfExists(filePath);
 
         // Delete from DB
+        s3Service.deleteFile(file.getFileName());
+
         fileRepository.delete(file);
 
         return new ResponseEntity<>("File deleted", HttpStatus.OK);

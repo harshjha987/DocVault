@@ -8,6 +8,7 @@ import java.time.Instant;
 
 @Entity
 @Data
+@Table(name = "users")
 public class User {
 
     @Id

@@ -14,11 +14,13 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(ResourceNotFoundException.class)
     public ResponseEntity<ErrorResponse> handleResourceNotFound(
             ResourceNotFoundException ex) {
+        ex.printStackTrace();
         return new ResponseEntity<>(
                 new ErrorResponse(404, ex.getMessage()),
                 HttpStatus.NOT_FOUND
         );
     }
+
 
     // handles duplicate email on registration
     @ExceptionHandler(DuplicateResourceException.class)
@@ -53,6 +55,12 @@ public class GlobalExceptionHandler {
     // catches anything else that slips through
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ErrorResponse> handleGeneral(Exception ex) {
+        ex.printStackTrace();
+        System.out.println("EXCEPTION CLASS: " + ex.getClass().getName());
+        System.out.println("EXCEPTION MESSAGE: " + ex.getMessage());
+        if (ex.getCause() != null) {
+            System.out.println("CAUSED BY: " + ex.getCause().getMessage());
+        }
         return new ResponseEntity<>(
                 new ErrorResponse(500, "Something went wrong"),
                 HttpStatus.INTERNAL_SERVER_ERROR
