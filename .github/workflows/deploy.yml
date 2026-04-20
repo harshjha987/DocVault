@@ -1,11 +1,11 @@
 name: Deploy to EC2
 
-  on:
-    push:
-      branches:
+on:
+  push:
+    branches:
         - main  # runs every time you push to main branch
 
-  jobs:
+jobs:
     deploy:
       runs-on: ubuntu-latest
 
