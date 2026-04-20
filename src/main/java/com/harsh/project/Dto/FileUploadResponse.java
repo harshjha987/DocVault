@@ -16,4 +16,5 @@ public class FileUploadResponse {
     private String fileType;
     private Long size;
     private Instant uploadedAt;
+    private String folderId;
 }

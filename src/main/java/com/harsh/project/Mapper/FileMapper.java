@@ -14,6 +14,9 @@ public class FileMapper {
         response.setFileType(file.getFileType());
         response.setSize(file.getSize());
         response.setUploadedAt(file.getUploadedAt());
+        response.setFolderId(
+                file.getFolder()!= null ? file.getFolder().getId() : null
+        );
 
         return response;
     }
