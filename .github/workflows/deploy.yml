@@ -43,16 +43,4 @@ jobs:
             username: ${{ secrets.EC2_USERNAME }}
             key: ${{ secrets.EC2_KEY }}
             script: |
-              mv ~/target/File-Upload-System-0.0.1-SNAPSHOT.jar ~/app.jar
-              pkill -f "app.jar" || true
-              sleep 2
-              export DB_USERNAME=${{ secrets.DB_USERNAME }}
-              export DB_PASSWORD=${{ secrets.DB_PASSWORD }}
-              export JWT_SECRET=${{ secrets.JWT_SECRET }}
-              export AWS_ACCESS_KEY=${{ secrets.AWS_ACCESS_KEY }}
-              export AWS_SECRET_KEY=${{ secrets.AWS_SECRET_KEY }}
-              export AWS_REGION=${{ secrets.AWS_REGION }}
-              export AWS_BUCKET_NAME=${{ secrets.AWS_BUCKET_NAME }}
-              nohup java -jar ~/app.jar > ~/app.log 2>&1 &
-              disown
-              echo "App started"
+              bash ~/start-app.sh
