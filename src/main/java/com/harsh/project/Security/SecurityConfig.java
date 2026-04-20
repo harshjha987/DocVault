@@ -3,6 +3,7 @@ package com.harsh.project.Security;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
@@ -40,7 +41,9 @@ public class SecurityConfig {
                 .csrf(csrf-> csrf.disable())
                 //2,define which endpoints are open and which are protected
                 //3. these two endpoints can access without a token
-                .authorizeHttpRequests(auth -> auth.requestMatchers(
+                .authorizeHttpRequests(auth -> auth
+                        .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
+                        .requestMatchers(
                         "/api/v1/auth/register","/api/v1/auth/login"
                 ).permitAll()
                         //4.everything else required a valid token
