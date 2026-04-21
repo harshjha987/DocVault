@@ -56,7 +56,11 @@ public class SecurityConfig {
        @Bean
         public CorsConfigurationSource corsConfigurationSource() {
             CorsConfiguration config = new CorsConfiguration();
-            config.setAllowedOrigins(List.of("https://docvault.site", "https://www.docvault.site"));
+            config.setAllowedOrigins(List.of(
+                "http://localhost:5173",
+                "https://docvault.site",
+                "https://www.docvault.site"
+            ));
             config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
             config.setAllowedHeaders(List.of("Authorization", "Content-Type", "Accept"));
             config.setAllowCredentials(true);
