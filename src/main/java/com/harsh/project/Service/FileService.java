@@ -161,7 +161,10 @@ public class FileService {
         Folder folder = folderRepository.findById(folderId)
                 .orElseThrow(() -> new ResourceNotFoundException(
                         "Folder not found with id: " + folderId));
-        return fileRepository.findByUserAndFolder(currentUser, folder)
+        if (!folder.getUser().getId().equals(currentUser.getId())) {
+            throw new UnauthorizedAccessException("You do not have permission to access this folder");
+        }
+        return folder.getFiles()
                 .stream()
                 .map(fileMapper::toResponse)
                 .collect(Collectors.toList());
