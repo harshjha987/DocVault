@@ -54,5 +54,10 @@ public class FileController {
         return fileService.searchFiles(name);
     }
 
+    @GetMapping("/folders/{folderId}/files")
+    public List<FileUploadResponse> getFilesByFolder(@PathVariable String folderId) {
+        return fileService.getFilesByFolder(folderId);
+    }
+
 
 }

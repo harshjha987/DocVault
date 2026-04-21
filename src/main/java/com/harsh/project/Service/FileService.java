@@ -156,6 +156,16 @@ public class FileService {
                 .map(fileMapper::toResponse)
                 .collect(Collectors.toList());
     }
+    public List<FileUploadResponse> getFilesByFolder(String folderId) {
+        User currentUser = getCurrentUser();
+        Folder folder = folderRepository.findById(folderId)
+                .orElseThrow(() -> new ResourceNotFoundException(
+                        "Folder not found with id: " + folderId));
+        return fileRepository.findByUserAndFolder(currentUser, folder)
+                .stream()
+                .map(fileMapper::toResponse)
+                .collect(Collectors.toList());
+    }
 
     private void checkOwnership(File file, User currentUser) {
         if (!file.getUser().getId().equals(currentUser.getId())) {
