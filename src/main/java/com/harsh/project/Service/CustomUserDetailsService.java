@@ -1,4 +1,4 @@
-package com.harsh.project.Security;
+package com.harsh.project.Service;
 
 import com.harsh.project.Entity.User;
 import com.harsh.project.Repository.UserRepository;
