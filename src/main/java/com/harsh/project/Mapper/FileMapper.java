@@ -17,6 +17,7 @@ public class FileMapper {
         response.setFolderId(
                 file.getFolder()!= null ? file.getFolder().getId() : null
         );
+        response.setShareToken(file.getShareToken());
 
         return response;
     }

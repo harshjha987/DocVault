@@ -39,4 +39,7 @@ public class File {
     @JoinColumn(name = "folder_id")
     private Folder folder;
 
+    @Column(unique = true)
+    private String shareToken;
+
 }

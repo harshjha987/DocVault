@@ -181,6 +181,41 @@ public StatsResponse getStats(){
         );
 }
 
+    public ResponseEntity<FileUploadResponse> generateShareLink(String id) {
+        File file = fileRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("File not found with id: " + id));
+        checkOwnership(file, getCurrentUser());
+        if (file.getShareToken() == null) {
+            file.setShareToken(UUID.randomUUID().toString());
+            fileRepository.save(file);
+        }
+        return ResponseEntity.ok(fileMapper.toResponse(file));
+    }
+
+    public ResponseEntity<String> revokeShareLink(String id) {
+        File file = fileRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("File not found with id: " + id));
+        checkOwnership(file, getCurrentUser());
+        file.setShareToken(null);
+        fileRepository.save(file);
+        return ResponseEntity.ok("Share link revoked");
+    }
+
+    public ResponseEntity<byte[]> downloadSharedFile(String token) throws IOException {
+        File file = fileRepository.findByShareToken(token)
+                .orElseThrow(() -> new ResourceNotFoundException("Invalid or expired share link"));
+        try (InputStream inputStream = s3Service.downloadFile(file.getFileName())) {
+            byte[] content = inputStream.readAllBytes();
+            return ResponseEntity.ok()
+                    .contentType(MediaType.parseMediaType(file.getFileType()))
+                    .header(HttpHeaders.CONTENT_DISPOSITION,
+                            "inline; filename=\"" + file.getOriginalName() + "\"")
+                    .body(content);
+        } catch (IOException e) {
+            throw new FileStorageException("Could not download shared file");
+        }
+    }
+
     private void checkOwnership(File file, User currentUser) {
         if (!file.getUser().getId().equals(currentUser.getId())) {
             throw new UnauthorizedAccessException(

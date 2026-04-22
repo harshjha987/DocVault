@@ -6,6 +6,7 @@ import com.harsh.project.Entity.User;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 public interface FileRepository extends JpaRepository<File, String> {
@@ -15,5 +16,7 @@ public interface FileRepository extends JpaRepository<File, String> {
     List<File>searchByUserAndOriginalNameContainingIgnoreCase(User user,String name);
 
     List<File> findByUserAndFolder(User user, Folder folder);
+
+    Optional<File> findByShareToken(String shareToken);
 
 }

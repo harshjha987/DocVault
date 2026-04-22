@@ -65,5 +65,19 @@ public class FileController {
         return ResponseEntity.ok(fileService.getStats());
     }
 
+    @PostMapping("/{id}/share")
+    public ResponseEntity<FileUploadResponse> generateShareLink(@PathVariable String id) {
+        return fileService.generateShareLink(id);
+    }
+
+    @DeleteMapping("/{id}/share")
+    public ResponseEntity<String> revokeShareLink(@PathVariable String id) {
+        return fileService.revokeShareLink(id);
+    }
+
+    @GetMapping("/shared/{token}")
+    public ResponseEntity<byte[]> downloadSharedFile(@PathVariable String token) throws IOException {
+        return fileService.downloadSharedFile(token);
+    }
 
 }

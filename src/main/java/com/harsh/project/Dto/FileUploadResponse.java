@@ -17,4 +17,5 @@ public class FileUploadResponse {
     private Long size;
     private Instant uploadedAt;
     private String folderId;
+    private String shareToken;
 }
