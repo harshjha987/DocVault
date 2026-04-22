@@ -1,6 +1,7 @@
 package com.harsh.project.Controller;
 
 import com.harsh.project.Dto.FileUploadResponse;
+import com.harsh.project.Dto.StatsResponse;
 import com.harsh.project.Entity.File;
 import com.harsh.project.Service.FileService;
 import org.springframework.core.io.Resource;
@@ -57,6 +58,11 @@ public class FileController {
     @GetMapping("/folders/{folderId}/files")
     public List<FileUploadResponse> getFilesByFolder(@PathVariable String folderId) {
         return fileService.getFilesByFolder(folderId);
+    }
+
+    @GetMapping("/stats")
+    public ResponseEntity<StatsResponse>getStats(){
+        return ResponseEntity.ok(fileService.getStats());
     }
 
 

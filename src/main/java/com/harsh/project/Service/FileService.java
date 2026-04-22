@@ -1,6 +1,7 @@
 package com.harsh.project.Service;
 
 import com.harsh.project.Dto.FileUploadResponse;
+import com.harsh.project.Dto.StatsResponse;
 import com.harsh.project.Entity.File;
 import com.harsh.project.Entity.Folder;
 import com.harsh.project.Entity.User;
@@ -169,6 +170,16 @@ public class FileService {
                 .map(fileMapper::toResponse)
                 .collect(Collectors.toList());
     }
+
+public StatsResponse getStats(){
+        User user = getCurrentUser();
+        List<File> files = fileRepository.findByUser(user);
+        long totalSize = files.stream().mapToLong(File::getSize).sum();
+        long totalFolders = folderRepository.findByUser(user).size();
+        return new StatsResponse(
+                files.size(),totalSize,totalFolders
+        );
+}
 
     private void checkOwnership(File file, User currentUser) {
         if (!file.getUser().getId().equals(currentUser.getId())) {
