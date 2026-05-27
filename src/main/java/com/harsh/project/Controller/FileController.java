@@ -80,4 +80,11 @@ public class FileController {
         return fileService.downloadSharedFile(token);
     }
 
+    @PutMapping("/{fileId}/move")
+    public ResponseEntity<FileUploadResponse> moveFile(
+            @PathVariable String fileId,
+            @RequestParam(required = false) String folderId) {
+        return fileService.moveFile(fileId, folderId);
+    }
+
 }

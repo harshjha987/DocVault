@@ -222,4 +222,35 @@ public StatsResponse getStats(){
                     "You do not have permission to access this file");
         }
     }
+
+    public ResponseEntity<FileUploadResponse> moveFile(String fileId, String folderId) {
+
+        User currentUser = getCurrentUser();
+
+        // find the file
+        File file = fileRepository.findById(fileId)
+                .orElseThrow(() -> new ResourceNotFoundException("File not found"));
+
+        // make sure you own the file
+        checkOwnership(file, currentUser);
+
+        if (folderId == null) {
+            // move to root — no folder
+            file.setFolder(null);
+        } else {
+            // find the destination folder
+            Folder folder = folderRepository.findById(folderId)
+                    .orElseThrow(() -> new ResourceNotFoundException("Folder not found"));
+
+            // make sure you own the destination folder too
+            if (!folder.getUser().getId().equals(currentUser.getId())) {
+                throw new UnauthorizedAccessException("You don't own this folder");
+            }
+
+            file.setFolder(folder);
+        }
+
+        fileRepository.save(file);
+        return ResponseEntity.ok(fileMapper.toResponse(file));
+    }
 }
