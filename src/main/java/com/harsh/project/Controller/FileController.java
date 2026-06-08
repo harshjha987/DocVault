@@ -1,6 +1,7 @@
 package com.harsh.project.Controller;
 
 import com.harsh.project.Dto.FileUploadResponse;
+import com.harsh.project.Dto.PagedResponse;
 import com.harsh.project.Dto.StatsResponse;
 import com.harsh.project.Entity.File;
 import com.harsh.project.Service.FileService;
@@ -44,9 +45,12 @@ public class FileController {
         return fileService.deleteFile(id);
     }
 
+
     @GetMapping("/allFiles")
-    public List<FileUploadResponse> getAllFiles(){
-        return fileService.getAllFiles();
+    public PagedResponse<FileUploadResponse> getAllFiles(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size) {
+        return fileService.getAllFiles(page, size);
     }
 
 

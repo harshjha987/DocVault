@@ -3,6 +3,8 @@ package com.harsh.project.Repository;
 import com.harsh.project.Entity.File;
 import com.harsh.project.Entity.Folder;
 import com.harsh.project.Entity.User;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.List;
@@ -18,5 +20,7 @@ public interface FileRepository extends JpaRepository<File, String> {
     List<File> findByUserAndFolder(User user, Folder folder);
 
     Optional<File> findByShareToken(String shareToken);
+
+    Page<File> findByUser(User user, Pageable pageable);
 
 }

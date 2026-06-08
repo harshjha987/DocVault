@@ -1,6 +1,7 @@
 package com.harsh.project.Service;
 
 import com.harsh.project.Dto.FileUploadResponse;
+import com.harsh.project.Dto.PagedResponse;
 import com.harsh.project.Dto.StatsResponse;
 import com.harsh.project.Entity.File;
 import com.harsh.project.Entity.Folder;
@@ -16,6 +17,9 @@ import com.harsh.project.Repository.FolderRepository;
 import com.harsh.project.Repository.UserRepository;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.UrlResource;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -135,13 +139,21 @@ public class FileService {
     }
 
 
-    public List<FileUploadResponse> getAllFiles() {
+    public PagedResponse<FileUploadResponse> getAllFiles(int page , int size) {
 
         User currentUser = getCurrentUser();
-        return fileRepository.findByUser(currentUser)
-                .stream()
-                .map(fileMapper::toResponse)
-                .collect(Collectors.toList());
+        Page<File> filePage = fileRepository.findByUser(
+                currentUser,
+                PageRequest.of(page, size, Sort.by("uploadedAt").descending())
+        );
+        return new PagedResponse<>(
+                filePage.getContent().stream().map(fileMapper::toResponse).collect(Collectors.toList()),
+                filePage.getNumber(),
+                filePage.getSize(),
+                filePage.getTotalElements(),
+                filePage.getTotalPages(),
+                filePage.isLast()
+        );
     }
 
     private User getCurrentUser() {
