@@ -1,0 +1,30 @@
+services:
+  db:
+    image: mysql:8.0
+    container_name: docvault_db
+    environment:
+      MYSQL_ROOT_PASSWORD: ${DB_ROOT_PASSWORD}
+      MYSQL_DATABASE: fileDb
+    volumes:
+      - mysql_data:/var/lib/mysql
+    healthcheck:
+      test: [ "CMD","mysqladmin","ping","-h","localhost" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+  app:
+    build: .
+    image: harshjha556/docvault-server:latest
+    container_name: docvault-server
+    ports:
+      - "8080:8080"
+    depends_on:
+       db:
+          condition: service_healthy
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:mysql://db:3306/fileDb?createDatabaseIfNotExist=true
+
+
+
+volumes:
+  mysql_data:
