@@ -13,17 +13,18 @@ services:
       timeout: 5s
       retries: 5
   app:
-    build: .
+
     image: harshjha556/docvault-server:latest
     container_name: docvault-server
     ports:
       - "8080:8080"
     depends_on:
-       db:
-          condition: service_healthy
+      db:
+        condition: service_healthy
     environment:
-      SPRING_DATASOURCE_URL: jdbc:mysql://db:3306/fileDb?createDatabaseIfNotExist=true
-
+      SPRING_DATASOURCE_URL: jdbc:mysql://db:3306/fileDb?createDatabaseIfNotExist=true&useSSL=false&allowPublicKeyRetrieval=true
+    volumes:
+      - /home/ec2-user/config/application.properties:/config/application.properties:ro
 
 
 volumes:
