@@ -2,6 +2,7 @@ services:
   db:
     image: mysql:8.0
     container_name: docvault_db
+    restart: unless-stopped
     environment:
       MYSQL_ROOT_PASSWORD: ${DB_ROOT_PASSWORD}
       MYSQL_DATABASE: fileDb
@@ -16,6 +17,7 @@ services:
 
     image: harshjha556/docvault-server:latest
     container_name: docvault-server
+    restart: unless-stopped
     ports:
       - "8080:8080"
     depends_on:
